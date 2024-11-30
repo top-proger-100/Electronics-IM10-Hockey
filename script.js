@@ -32,7 +32,57 @@ const goalkeeper = {
     }
 };
 
+// левая нижняя шайба
+const puckLD = {
+    width: 10,
+    height: 10,
+    currentState: 0,
+    moveParam: 0,
+    image: new Image(),
+    states: {
+        0: {image: './Изображения/лнш/лнш1.png', x: 360, y: 380},
+        1: {image: './Изображения/лнш/лнш2.png', x: 370, y: 370},
+        2: {image: './Изображения/лнш/лнш3.png', x: 377, y: 360},
+        3: {image: './Изображения/лнш/лнш4.png', x: 385, y: 340},
+        4: {image: './Изображения/лнш/лнш5.png', x: 395, y: 330},
+    },
+    draw() {
+        ctx.drawImage(this.image, this.states[this.currentState % 5].x,
+             this.states[this.currentState % 5].y, this.width, this.height);
+    },
+    init() {
+        this.image.src = this.states[this.currentState % 5].image;
+    },
+    move() {
+        if (this.moveParam % 35 == 0) {
+            this.currentState++;
+            this.image.src = this.states[this.currentState % 5].image;
+        }
+        this.moveParam++;
+    },
+    isLastState() {
+        return this.currentState % 5 == 0 && this.currentState != 0;
+    }
+};
+
+// правая нижняя шайба
+const puckRD = Object.assign({}, puckLD);
+
+// левая верхняя шайба
+const puckLU = Object.assign({}, puckLD);
+
+// правая верхняя шайба
+const puckRU = Object.assign({}, puckLD);
+
+var pucks = [puckLD, puckRD, puckLU, puckRU];
+
 goalkeeper.setLeftDownState();
+
+for (let puck of pucks) {
+    puck.init();
+}
+
+var currentPuck = pucks[0];
 
 window.addEventListener('keydown', function(event) {
     if (event.code == 'KeyQ') {
@@ -49,6 +99,9 @@ window.addEventListener('keydown', function(event) {
 setInterval(function() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
+
+    currentPuck.draw();
+    currentPuck.move();
 
     goalkeeper.draw();
 }, 20);
