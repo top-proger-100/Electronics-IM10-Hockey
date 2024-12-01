@@ -8,6 +8,10 @@ background.src = background_source_start;
 
 var state = 0; // 0 - сброс, 1 - установка будильника, 2 - время, 3 - время будильника, 4 - игра 1, 5 - игра 2
 
+var time_value = 0;
+var isPlayAlarm = false;
+var alarmAudio = new Audio('./Звуки/будильник.mp4');
+
 // вратарь
 const goalkeeper = {
     coords: { x: 480, y: 240 },
@@ -107,6 +111,9 @@ const resetButton = {
         alarmButton.minutes = 0;
         alarmButton.hours = 12;
         alarmButton.isPm = true;
+
+        time_value = 0;
+        isPlayAlarm = false;
     },
     minutes: 0,
     hours: 12,
@@ -135,7 +142,6 @@ const resetButton = {
         }
         this.hours++;
     },
-    // ???
     deleteHour() {
         if (this.hours == 12) {
             if (this.isPm) {
@@ -161,10 +167,7 @@ alarmButton.action = function() {
     alarmButton.isShow = true;
     background.src = background_source_game;
     state = 1;
-    //alarmButton.minutes = 0;
-    //alarmButton.hours = 12;
-    //alarmButton.isPm = true;
-    // ...
+    isPlayAlarm = false;
 }
 
 // кнопка просмотра времени часов и времени будильника
@@ -182,6 +185,7 @@ const timeButton = {
         this.isShow = true;
         state = 3;
         background.src = background_source_game;
+        isPlayAlarm = false;
     },
     resetFlag() {
         this.isShow = false;
@@ -200,6 +204,7 @@ game1Button.action = function() {
     background.src = background_source_game;
     state = 4;
     goalkeeper.scores = 0;
+    isPlayAlarm = false;
 }
 game1Button.resetFlag = function() {
     this.isShow = false;
@@ -208,6 +213,7 @@ game1Button.resetFlag = function() {
 const game2Button = Object.assign({}, game1Button);
 game2Button.coords = { xLeft: 811, xRight: 854, yTop: 120, yBottom: 155 };
 game1Button.action = function() {
+    isPlayAlarm = false;
     this.isShow = true;
     background.src = background_source_game;
     state = 5;
@@ -215,11 +221,72 @@ game1Button.action = function() {
 }
 
 const leftUpButton = {
-    coords: {},
+    coords: { xLeft: 85, xRight: 141, yTop: 340, yBottom: 396 },
     image: new Image(),
+    source: './Изображения/интерфейс/нажатая кнопка3.png',
     isShow: false,
-
+    width: 56,
+    height: 56,
+    init() {
+        this.image.src = this.source;
+    },
+    action() {
+        this.isShow = true;
+    },
+    resetFlag() {
+        this.isShow = false;
+        if (state == 4 || state == 5) {
+            goalkeeper.setLeftUpState();
+        } else if (state == 0) {
+            resetButton.addHour();
+        } else if (state == 1) {
+            alarmButton.addHour();
+        }
+    },
+    draw() {
+        ctx.drawImage(this.image, this.coords.xLeft,
+             this.coords.yTop, this.width, this.height);
+    }
 };
+
+const leftDownButton = Object.assign({}, leftUpButton);
+leftDownButton.coords = { xLeft: 85, xRight: 141, yTop: 440, yBottom: 496 };
+leftDownButton.resetFlag = function() {
+    this.isShow = false;
+    if (state == 4 || state == 5) {
+        goalkeeper.setLeftDownState();
+    } else if (state == 0) {
+        resetButton.deleteHour();
+    } else if (state == 1) {
+        alarmButton.deleteHour();
+    }
+}
+
+const rightUpButton = Object.assign({}, leftUpButton);
+rightUpButton.coords = { xLeft: 820, xRight: 876, yTop: 340, yBottom: 396 },
+rightUpButton.resetFlag = function() {
+    this.isShow = false;
+    if (state == 4 || state == 5) {
+        goalkeeper.setRightUpState();
+    } else if (state == 0) {
+        resetButton.addMinute();
+    } else if (state == 1) {
+        alarmButton.addMinute();
+    }
+}
+
+const rightDownButton = Object.assign({}, leftUpButton);
+rightDownButton.coords = { xLeft: 820, xRight: 876, yTop: 440, yBottom: 496 },
+rightDownButton.resetFlag = function() {
+    this.isShow = false;
+    if (state == 4 || state == 5) {
+        goalkeeper.setRightDownState();
+    } else if (state == 0) {
+        resetButton.deleteMinute();
+    } else if (state == 1) {
+        alarmButton.deleteMinute();
+    }
+}
 
 // элементы интерфейса (различные надписи)
 const ui_components = {
@@ -277,43 +344,35 @@ const ui_components = {
     }
 };
 
+
 window.addEventListener('keydown', function(event) {
     if (event.code == 'KeyQ') {
-        if (state == 4 || state == 5) {
-            goalkeeper.setLeftUpState();
-        } else if (state == 0) {
-            resetButton.addHour();
-        } else if (state == 1) {
-            alarmButton.addHour();
-        }
+        leftUpButton.action();
     } else if (event.code == 'KeyS') {
-        if (state == 4 || state == 5) {
-            goalkeeper.setLeftDownState();
-        } else if (state == 0) {
-            resetButton.deleteHour();
-        } else if (state == 1) {
-            alarmButton.deleteHour();
-        }
+        leftDownButton.action();
     } else if (event.code == 'KeyP') {
-        if (state == 4 || state == 5) {
-            goalkeeper.setRightUpState();
-        } else if (state == 0) {
-            resetButton.addMinute();
-        } else if (state == 1) {
-            alarmButton.addMinute();
-        }
+        rightUpButton.action();
     } else if (event.code == 'KeyL') {
-        if (state == 4 || state == 5) {
-            goalkeeper.setRightDownState();
-        } else if (state == 0) {
-            resetButton.deleteMinute();
-        } else if (state == 1) {
-            alarmButton.deleteMinute();
-        }
+        rightDownButton.action();
     } 
 });
 
-buttons = [resetButton, alarmButton, timeButton, game1Button, game2Button];
+window.addEventListener('keyup', function(event) {
+    if (event.code == 'KeyQ') {
+        leftUpButton.resetFlag();
+    } else if (event.code == 'KeyS') {
+        leftDownButton.resetFlag();
+    } else if (event.code == 'KeyP') {
+        rightUpButton.resetFlag();
+    } else if (event.code == 'KeyL') {
+        rightDownButton.resetFlag();
+    } 
+});
+
+
+buttons = [resetButton, alarmButton, timeButton,
+     game1Button, game2Button, leftUpButton, leftDownButton,
+     rightUpButton, rightDownButton];
 
 window.addEventListener('mousedown', function(event) {
     if (event.which == 1) {
@@ -337,13 +396,18 @@ window.addEventListener('mouseup', function(event) {
             }
         }
     }
+
+    setInterval(function() {
+        if (isPlayAlarm) {
+            alarmAudio.play();
+        }
+    }, 1000);
 });
 
 
 var pucks = [puckLD, puckRD, puckLU, puckRU];
 
 goalkeeper.setLeftDownState();
-
 for (let puck of pucks) {
     puck.init();
 }
@@ -366,7 +430,7 @@ setInterval(function() {
         ui_components.draw_digits(String(goalkeeper.scores));
         goalkeeper.draw();
     } else {
-        // другие режимы
+        // получение времени будильника или часов 
         let hours;
         let minutes;
         if (state == 1 || state == 3) {
@@ -383,15 +447,16 @@ setInterval(function() {
             minutes = '0' + minutes;
         }
         let time = hours + minutes;
+
+        // отрисовка цифр, судьи и часов
         ui_components.draw_digits(time);
         ui_components.draw_points();
         if ((state == 1 || state == 3) && alarmButton.isPm || (state == 0 || state == 2) && resetButton.isPm) {
             ui_components.draw_clock();
         }
-        if (state == 1 || state == 3) {
+        if (state == 1 || state == 3 || isPlayAlarm) {
             ui_components.draw_referee();
         }
-
         if (state == 1 || state == 2 || state == 3) {
             goalkeeper.draw();
         }
@@ -403,4 +468,22 @@ setInterval(function() {
             button.draw();
         }
     }
+
+    if (state != 0) {
+        if (time_value != 0 && time_value % 3000 == 0) { // 1000 мс * 60 с / 20 мс
+            if (resetButton.minutes == 59) {
+                resetButton.addHour();
+            }
+            resetButton.addMinute();
+            isPlayAlarm = false;
+            if (state == 2) {
+                if (alarmButton.minutes == resetButton.minutes && 
+                    alarmButton.hours == resetButton.hours &&
+                    alarmButton.isPm == resetButton.isPm) {
+                    isPlayAlarm = true;
+                }
+            }
+        }
+        time_value++;
+    }      
 }, 20);
