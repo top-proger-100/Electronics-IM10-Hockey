@@ -18,26 +18,36 @@ const goalkeeper = {
     width: 91,
     height: 114,
     scores: 0,
+    // штрафные очки
     penalty_scores: 0, // до 6
     image: new Image(),
     rightCoords: { x: 480, y: 245 },
     leftCoords: { x: 390, y: 245 },
+    state: 0,
     draw() {
         ctx.drawImage(this.image, this.coords.x, this.coords.y, this.width, this.height);
     },
+    // левое верхнее положение
     setLeftUpState() {
+        this.state = 1;
         this.coords = this.leftCoords;
         this.image.src = './Изображения/вратарь/лвв.png';
     },
+    // левое нижнее положение
     setLeftDownState() {
+        this.state = 0;
         this.coords = this.leftCoords;
         this.image.src = './Изображения/вратарь/лнв.png';
     },
+    // правое верхнее положение
     setRightUpState() {
+        this.state = 2;
         this.coords = this.rightCoords;
         this.image.src = './Изображения/вратарь/пвв.png';
     },
+    // правое нижнее положение
     setRightDownState() {
+        this.state = 3;
         this.coords = this.rightCoords;
         this.image.src = './Изображения/вратарь/пнв.png';
     }
@@ -45,46 +55,67 @@ const goalkeeper = {
 
 // левая нижняя шайба
 const puckLD = {
-    width: 10,
-    height: 10,
+    width: 16,
+    height: 14,
     currentState: 0,
-    moveParam: 0,
-    image: new Image(),
+    image: null,
     states: {
         0: {image: './Изображения/лнш/лнш1.png', x: 360, y: 380},
-        1: {image: './Изображения/лнш/лнш2.png', x: 370, y: 370},
-        2: {image: './Изображения/лнш/лнш3.png', x: 377, y: 360},
-        3: {image: './Изображения/лнш/лнш4.png', x: 385, y: 340},
-        4: {image: './Изображения/лнш/лнш5.png', x: 395, y: 330},
+        1: {image: './Изображения/лнш/лнш2.png', x: 365, y: 370},
+        2: {image: './Изображения/лнш/лнш3.png', x: 373, y: 360},
+        3: {image: './Изображения/лнш/лнш4.png', x: 380, y: 345},
+        4: {image: './Изображения/лнш/лнш5.png', x: 386, y: 325},
     },
     draw() {
         ctx.drawImage(this.image, this.states[this.currentState % 5].x,
              this.states[this.currentState % 5].y, this.width, this.height);
     },
     init() {
+        this.image = new Image();
         this.currentState = 0;
         this.image.src = this.states[this.currentState].image;
     },
     move() {
-        if (this.moveParam % 35 == 0) {
-            this.currentState++;
-            this.image.src = this.states[this.currentState % 5].image;
-        }
-        this.moveParam++;
+        this.currentState++;
+        this.image.src = this.states[this.currentState % 5].image;
     },
     isLastState() {
         return this.currentState % 5 == 0 && this.currentState != 0;
-    }
+    },
 };
 
 // правая нижняя шайба
-const puckRD = Object.assign({}, puckLD);
+const puckRD = Object.create(puckLD);
+puckRD.states = {
+    0: { image: './Изображения/пнш/пнш1.png', x: 595, y: 380 },
+    1: { image: './Изображения/пнш/пнш2.png', x: 585, y: 370 },
+    2: { image: './Изображения/пнш/пнш3.png', x: 575, y: 360 },
+    3: { image: './Изображения/пнш/пнш4.png', x: 565, y: 345 },
+    4: { image: './Изображения/пнш/пнш5.png', x: 555, y: 325 },
+};
 
 // левая верхняя шайба
-const puckLU = Object.assign({}, puckLD);
+const puckLU = Object.create(puckLD);
+puckLU.states = {
+    0: { image: './Изображения/лвш/лвш1.png', x: 305, y: 280 },
+    1: { image: './Изображения/лвш/лвш2.png', x: 320, y: 275 },
+    2: { image: './Изображения/лвш/лвш3.png', x: 340, y: 270 },
+    3: { image: './Изображения/лвш/лвш4.png', x: 360, y: 265 },
+    4: { image: './Изображения/лвш/лвш5.png', x: 380, y: 260 },
+};
 
 // правая верхняя шайба
-const puckRU = Object.assign({}, puckLD);
+const puckRU = Object.create(puckLD);
+puckRU.states = {
+    0: { image: './Изображения/пвш/пвш1.png', x: 635, y: 280 },
+    1: { image: './Изображения/пвш/пвш2.png', x: 620, y: 275 },
+    2: { image: './Изображения/пвш/пвш3.png', x: 605, y: 270 },
+    3: { image: './Изображения/пвш/пвш4.png', x: 590, y: 265 },
+    4: { image: './Изображения/пвш/пвш5.png', x: 575, y: 260 }
+};
+
+// переделать на массив, который состоит из ещё 4х (знач макс 3 массива при игре 1) массивов, затем рандомным образом заполнить при ситуации, когда поймал или не поймал вратарь
+var allPucks = [[Object.create(puckLD)], [], [], []];
 
 // кнопка сброса
 const resetButton = {
@@ -159,7 +190,7 @@ const resetButton = {
     }
 };
 
-// кнопка будильника
+// кнопка установки будильника
 const alarmButton = Object.assign({}, resetButton);
 alarmButton.coords = { xLeft: 885, xRight: 910, yTop: 90, yBottom: 115 };
 alarmButton.isPm = true;
@@ -197,29 +228,42 @@ const timeButton = {
     }
 };
 
+// кнопка игра 1
 const game1Button = Object.assign({}, timeButton);
 game1Button.coords = { xLeft: 811, xRight: 854, yTop: 55, yBottom: 90 };
+game1Button.setState = function() {
+    state = 4;
+}
+game1Button.resetPucks = function() {
+    allPucks = [[puckLD], [], [], []];
+    for (let pucks of allPucks) {
+        for (let puck of pucks) {
+            puck.init();
+        }
+    }
+}
 game1Button.action = function() {
     this.isShow = true;
     background.src = background_source_game;
-    state = 4;
     goalkeeper.scores = 0;
     isPlayAlarm = false;
+    // начальное положение шайб и хоккеиста
+    goalkeeper.setLeftDownState();
+    this.setState();
+    this.resetPucks();
 }
 game1Button.resetFlag = function() {
     this.isShow = false;
 }
 
+// кнопка игра 2
 const game2Button = Object.assign({}, game1Button);
 game2Button.coords = { xLeft: 811, xRight: 854, yTop: 120, yBottom: 155 };
-game1Button.action = function() {
-    isPlayAlarm = false;
-    this.isShow = true;
-    background.src = background_source_game;
+game2Button.setState = function() {
     state = 5;
-    goalkeeper.scores = 0;
 }
 
+// левая верхняя кнопка управления
 const leftUpButton = {
     coords: { xLeft: 85, xRight: 141, yTop: 340, yBottom: 396 },
     image: new Image(),
@@ -249,6 +293,7 @@ const leftUpButton = {
     }
 };
 
+// левая нижняя кнопка управления
 const leftDownButton = Object.assign({}, leftUpButton);
 leftDownButton.coords = { xLeft: 85, xRight: 141, yTop: 440, yBottom: 496 };
 leftDownButton.resetFlag = function() {
@@ -262,6 +307,7 @@ leftDownButton.resetFlag = function() {
     }
 }
 
+// правая верхняя кнопка управления
 const rightUpButton = Object.assign({}, leftUpButton);
 rightUpButton.coords = { xLeft: 820, xRight: 876, yTop: 340, yBottom: 396 },
 rightUpButton.resetFlag = function() {
@@ -275,6 +321,7 @@ rightUpButton.resetFlag = function() {
     }
 }
 
+// левая нижняя кнопка управления
 const rightDownButton = Object.assign({}, leftUpButton);
 rightDownButton.coords = { xLeft: 820, xRight: 876, yTop: 440, yBottom: 496 },
 rightDownButton.resetFlag = function() {
@@ -290,6 +337,7 @@ rightDownButton.resetFlag = function() {
 
 // элементы интерфейса (различные надписи)
 const ui_components = {
+    // часы
     clock_image: new Image(),
     clock_image_src:'./Изображения/интерфейс/часы.png',
     clock_coords: { x: 455, y: 140 },
@@ -299,6 +347,7 @@ const ui_components = {
         ctx.drawImage(this.clock_image, this.clock_coords.x, this.clock_coords.y,
             this.clock_width, this.clock_height);
     },
+    // цифры
     digit_width: 22,
     digit_height: 36,
     digits_image: [new Image(), new Image(), new Image(), new Image()],
@@ -317,6 +366,7 @@ const ui_components = {
                  this.digits_coords[digits.length-1-i][1], this.digit_width, this.digit_height);
         }
     },
+    // двоеточие
     points_image: new Image(),
     points_src: './Изображения/интерфейс/двоеточие.png',
     points_width: 9,
@@ -326,25 +376,67 @@ const ui_components = {
         ctx.drawImage(this.points_image, this.points_coords.x, this.points_coords.y,
              this.points_width, this.points_height);
     },
+    // судья при звонке будильника
+    alarm_referee_image: new Image(),
+    alarm_referee_src: './Изображения/интерфейс/Судья с нотами.png',
+    alarm_referee_width: 99,
+    alarm_referee_height: 79,
+    alarm_referee_coords: { x: 340, y: 143 },
+    draw_alarm_referee() {
+        ctx.drawImage(this.alarm_referee_image, this.alarm_referee_coords.x, this.alarm_referee_coords.y,
+            this.alarm_referee_width, this.alarm_referee_height);
+    },
+    // судья в игре
     referee_image: new Image(),
-    referee_src: './Изображения/интерфейс/Судья с нотами.png',
-    referee_width: 99,
-    referee_height: 79,
+    referee_image_src: './Изображения/интерфейс/Судья.png',
+    referee_enable_flag: false,
+    referee_enable_counter: 0,
+    referee_width: 74,
+    referee_height: 76,
     referee_coords: { x: 340, y: 143 },
     draw_referee() {
         ctx.drawImage(this.referee_image, this.referee_coords.x, this.referee_coords.y,
             this.referee_width, this.referee_height);
     },
+    // надпись игра 1
+    game1_image: new Image(),
+    game1_image_src: './Изображения/интерфейс/игра1.png',
+    game1_width: 53,
+    game1_height: 22,
+    game1_coords: { x: 400, y: 378 },
+    draw_game1() {
+        ctx.drawImage(this.game1_image, this.game1_coords.x, this.game1_coords.y,
+            this.game1_width, this.game1_height);
+    },
+    // надпись игра 2
+    game2_image: new Image(),
+    game2_image_src: './Изображения/интерфейс/игра2.png',
+    game2_width: 62,
+    game2_height: 22,
+    game2_coords: { x: 501, y: 376 },
+    draw_game2() {
+        ctx.drawImage(this.game2_image, this.game2_coords.x, this.game2_coords.y,
+            this.game2_width, this.game2_height);
+    },
     
     init() {
         this.points_image.src = this.points_src;
         this.clock_image.src = this.clock_image_src;
-        this.referee_image.src = this.referee_src;
+        this.alarm_referee_image.src = this.alarm_referee_src;
+        this.referee_image.src = this.referee_image_src;
+        this.game1_image.src = this.game1_image_src;
+        this.game2_image.src = this.game2_image_src;
         // ...
     }
 };
 
 
+buttons = [resetButton, alarmButton, timeButton,
+    game1Button, game2Button, leftUpButton, leftDownButton,
+    rightUpButton, rightDownButton];
+
+
+// обработка нажатия клавиш
 window.addEventListener('keydown', function(event) {
     if (event.code == 'KeyQ') {
         leftUpButton.action();
@@ -356,7 +448,6 @@ window.addEventListener('keydown', function(event) {
         rightDownButton.action();
     } 
 });
-
 window.addEventListener('keyup', function(event) {
     if (event.code == 'KeyQ') {
         leftUpButton.resetFlag();
@@ -369,11 +460,7 @@ window.addEventListener('keyup', function(event) {
     } 
 });
 
-
-buttons = [resetButton, alarmButton, timeButton,
-     game1Button, game2Button, leftUpButton, leftDownButton,
-     rightUpButton, rightDownButton];
-
+// обработка нажатия мыши
 window.addEventListener('mousedown', function(event) {
     if (event.which == 1) {
         var rect = canvas.getBoundingClientRect();
@@ -387,7 +474,6 @@ window.addEventListener('mousedown', function(event) {
         }
     }
 });
-
 window.addEventListener('mouseup', function(event) {
     if (event.which == 1) {
         for (let i = 0; i < buttons.length; i++) {
@@ -397,6 +483,7 @@ window.addEventListener('mouseup', function(event) {
         }
     }
 
+    // звук будильника ("костыль")
     setInterval(function() {
         if (isPlayAlarm) {
             alarmAudio.play();
@@ -405,18 +492,59 @@ window.addEventListener('mouseup', function(event) {
 });
 
 
-var pucks = [puckLD, puckRD, puckLU, puckRU];
 
 goalkeeper.setLeftDownState();
-for (let puck of pucks) {
-    puck.init();
+for (let pucks of allPucks) {
+    for (let puck of pucks) {
+        puck.init();
+    }
 }
 for (let button of buttons) {
     button.init();
 }
 ui_components.init();
+var currentPuckInd = 0;
 
-var currentPuck = pucks[0];
+// функция, которая нужна для движения шайб в одном направлении (слева/справа сверху/снизу) 
+function getCurrentPucksInd() {
+    currentPuckInd++;
+    if (allPucks[currentPuckInd % allPucks.length].length == 0) {
+        getCurrentPucksInd();
+    }
+}
+
+// нужна для создания новой шайбы после достижения последней позиции шайбы
+function getNewPuck() {
+    let indexes = [];
+    for (let i = 0; i < allPucks.length; i++) {
+        if (allPucks[i].length == 0 || allPucks[i][allPucks[i].length-1].currentState % 5 >= 2) {
+            indexes.push(i);
+        }
+    }
+    let ind = Math.floor(Math.random() * indexes.length);
+    // в игре 1 максимум с трёх сторон (предусмотреть)
+    let val;
+    switch(indexes[ind]) {
+        case 0:
+            val = Object.create(puckLD);
+            break;
+        case 1:
+            val = Object.create(puckLU);
+            break;
+        case 2:
+            val = Object.create(puckRU);
+            break;
+        case 3:
+            val = Object.create(puckRD);
+            break;
+    }
+    val.init();
+    allPucks[indexes[ind]].push(val);
+}
+
+
+var moveParam = 0;
+var isResetScore = true;
 
 setInterval(function() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -424,12 +552,68 @@ setInterval(function() {
 
     if (state == 4 || state == 5) {
         // в режиме игры
-        currentPuck.draw();
-        currentPuck.move();
-    
+
+        // отрисовка шайб, вратаря и интерфейса
+        for (let pucks of allPucks) {
+            for (let puck of pucks) {
+                puck.draw();
+            }
+        }
+        if (ui_components.referee_enable_flag) {
+            ui_components.draw_referee();
+        }
         ui_components.draw_digits(String(goalkeeper.scores));
         goalkeeper.draw();
+        if (state == 4) {
+            ui_components.draw_game1();
+        } else {
+            ui_components.draw_game2();
+        }
+
+        // обработка движения шайб
+        if (moveParam % 35 == 0) { // 20 * 35 = 700 мс
+            for (let puck of allPucks[currentPuckInd % allPucks.length]) {
+                puck.move();
+            }
+        }
+        // проверка достижения шайбы последней позиции и проверка поимки шайбы
+        if (allPucks[currentPuckInd % allPucks.length][0].isLastState()) {
+            let puck_id = currentPuckInd % allPucks.length;
+            if (puck_id != goalkeeper.state) {
+                goalkeeper.penalty_scores = ui_components.referee_enable_flag ? goalkeeper.penalty_scores + 1
+                 : goalkeeper.penalty_scores + 2;
+                console.log(goalkeeper.penalty_scores);
+            } else {
+                goalkeeper.scores += 1;
+            }
+        } 
+        // 
+        if (moveParam % 35 == 0) {
+            if (allPucks[currentPuckInd % allPucks.length][0].isLastState()) {
+                allPucks[currentPuckInd % allPucks.length].splice(0, 1);
+                getNewPuck();
+            }
+            getCurrentPucksInd();
+        }
+
+        // обработка появления судьи
+        if (ui_components.referee_enable_counter % 600 == 0 && ui_components.referee_enable_counter != 0) {
+            ui_components.referee_enable_flag = ui_components.referee_enable_flag ? false : true;
+        }
+
+        // обработка достижения 200 и 500 очков
+        if ((goalkeeper == 200 || goalkeeper == 500) && isResetScore) {
+            goalkeeper.penalty_scores = 0;
+            isResetScore = false;
+        } else if (goalkeeper != 200 && goalkeeper != 500 && !isResetScore) {
+            isResetScore = true;
+        }
+
+        moveParam++;
+        ui_components.referee_enable_counter++;
     } else {
+        // неигровой режим
+
         // получение времени будильника или часов 
         let hours;
         let minutes;
@@ -448,27 +632,28 @@ setInterval(function() {
         }
         let time = hours + minutes;
 
-        // отрисовка цифр, судьи и часов
+        // отрисовка времени, судьи и часов
         ui_components.draw_digits(time);
         ui_components.draw_points();
         if ((state == 1 || state == 3) && alarmButton.isPm || (state == 0 || state == 2) && resetButton.isPm) {
             ui_components.draw_clock();
         }
         if (state == 1 || state == 3 || isPlayAlarm) {
-            ui_components.draw_referee();
+            ui_components.draw_alarm_referee();
         }
         if (state == 1 || state == 2 || state == 3) {
             goalkeeper.draw();
         }
     }
 
-    // отрисовка кнопок
+    // отрисовка нажатых кнопок
     for (let button of buttons) {
         if (button.isShow) {
             button.draw();
         }
     }
 
+    // счётчик времени 
     if (state != 0) {
         if (time_value != 0 && time_value % 3000 == 0) { // 1000 мс * 60 с / 20 мс
             if (resetButton.minutes == 59) {
@@ -476,6 +661,7 @@ setInterval(function() {
             }
             resetButton.addMinute();
             isPlayAlarm = false;
+            // обработка включения будильника
             if (state == 2) {
                 if (alarmButton.minutes == resetButton.minutes && 
                     alarmButton.hours == resetButton.hours &&
