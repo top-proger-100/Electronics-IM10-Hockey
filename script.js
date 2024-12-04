@@ -80,7 +80,7 @@ const puckLD = {
         this.image.src = this.states[this.currentState % 5].image;
     },
     isLastState() {
-        return this.currentState % 5 == 0 && this.currentState != 0;
+        return this.currentState == 4  && this.currentState != 0;
     },
 };
 
@@ -109,9 +109,9 @@ const puckRU = Object.create(puckLD);
 puckRU.states = {
     0: { image: './Изображения/пвш/пвш1.png', x: 635, y: 280 },
     1: { image: './Изображения/пвш/пвш2.png', x: 620, y: 275 },
-    2: { image: './Изображения/пвш/пвш3.png', x: 605, y: 270 },
-    3: { image: './Изображения/пвш/пвш4.png', x: 590, y: 265 },
-    4: { image: './Изображения/пвш/пвш5.png', x: 575, y: 260 }
+    2: { image: './Изображения/пвш/пвш3.png', x: 600, y: 270 },
+    3: { image: './Изображения/пвш/пвш4.png', x: 580, y: 265 },
+    4: { image: './Изображения/пвш/пвш5.png', x: 565, y: 260 }
 };
 
 // переделать на массив, который состоит из ещё 4х (знач макс 3 массива при игре 1) массивов, затем рандомным образом заполнить при ситуации, когда поймал или не поймал вратарь
@@ -235,22 +235,32 @@ game1Button.setState = function() {
     state = 4;
 }
 game1Button.resetPucks = function() {
-    allPucks = [[puckLD], [], [], []];
+    addPuck = 0;
+    allPucks = [[Object.create(puckLD)], [], [], []];
     for (let pucks of allPucks) {
         for (let puck of pucks) {
             puck.init();
         }
     }
 }
+game1Button.puckSpeed = 35;
 game1Button.action = function() {
+    this.resetPucks();
+    currentPuckInd = 0;
     this.isShow = true;
     background.src = background_source_game;
     goalkeeper.scores = 0;
+    goalkeeper.penalty_scores = 0;
     isPlayAlarm = false;
     // начальное положение шайб и хоккеиста
     goalkeeper.setLeftDownState();
     this.setState();
-    this.resetPucks();
+    puckSpeed = this.puckSpeed;
+    isResetScore = true;
+    isCatched = false;
+    isAddedPuck = false;
+    addPuck = 0;    
+    puck_count = 1;
 }
 game1Button.resetFlag = function() {
     this.isShow = false;
@@ -258,6 +268,7 @@ game1Button.resetFlag = function() {
 
 // кнопка игра 2
 const game2Button = Object.assign({}, game1Button);
+game2Button.puckSpeed = 30;
 game2Button.coords = { xLeft: 811, xRight: 854, yTop: 120, yBottom: 155 };
 game2Button.setState = function() {
     state = 5;
@@ -390,7 +401,6 @@ const ui_components = {
     referee_image: new Image(),
     referee_image_src: './Изображения/интерфейс/Судья.png',
     referee_enable_flag: false,
-    referee_enable_counter: 0,
     referee_width: 74,
     referee_height: 76,
     referee_coords: { x: 340, y: 143 },
@@ -418,6 +428,45 @@ const ui_components = {
         ctx.drawImage(this.game2_image, this.game2_coords.x, this.game2_coords.y,
             this.game2_width, this.game2_height);
     },
+    penalty_scores_images: [new Image(), new Image(), new Image()],
+    penalty_scores_src: './Изображения/интерфейс/шайба в звезде.png',
+    penalty_scores_coords: [[525, 205], [495, 205], [465, 205]],
+    penalty_scores_width: 26,
+    penalty_scores_height: 23,
+    penalty_half_score_enabled: false,
+    draw_penalty_scores() {
+        let penalty_scores = goalkeeper.penalty_scores;
+        if (penalty_scores > 6) penalty_scores = 6;
+        if (penalty_scores % 2 == 1) {
+            let ind = (penalty_scores-1) / 2;
+            for (let i = 0; i < ind; i++) {
+                ctx.drawImage(this.penalty_scores_images[i], this.penalty_scores_coords[i][0],
+                    this.penalty_scores_coords[i][1], this.penalty_scores_width, this.penalty_scores_height);
+            }
+            if (time_value % 25 == 0) { // 500 мс
+                this.penalty_half_score_enabled = this.penalty_half_score_enabled ? false : true;
+            }
+            if (this.penalty_half_score_enabled) {
+                ctx.drawImage(this.penalty_scores_images[ind],
+                    this.penalty_scores_coords[ind][0], this.penalty_scores_coords[ind][1],
+                    this.penalty_scores_width, this.penalty_scores_height);
+            }
+        } else {
+            for (let i = 0; i < penalty_scores / 2; i++) {
+                ctx.drawImage(this.penalty_scores_images[i], this.penalty_scores_coords[i][0],
+                    this.penalty_scores_coords[i][1], this.penalty_scores_width, this.penalty_scores_height);
+            }
+        }
+    },
+    count_image: new Image(),
+    count_image_src: './Изображения/интерфейс/счёт.png',
+    count_image_coords: { x: 520, y: 180 },
+    count_image_width: 42,
+    count_image_height: 16,
+    draw_count_image() {
+        ctx.drawImage(this.count_image, this.count_image_coords.x, this.count_image_coords.y,
+            this.count_image_width, this.count_image_height);
+    },
     
     init() {
         this.points_image.src = this.points_src;
@@ -426,7 +475,10 @@ const ui_components = {
         this.referee_image.src = this.referee_image_src;
         this.game1_image.src = this.game1_image_src;
         this.game2_image.src = this.game2_image_src;
-        // ...
+        for (let i = 0; i < this.penalty_scores_images.length; i++) {
+            this.penalty_scores_images[i].src = this.penalty_scores_src;
+        }
+        this.count_image.src = this.count_image_src;
     }
 };
 
@@ -516,35 +568,58 @@ function getCurrentPucksInd() {
 // нужна для создания новой шайбы после достижения последней позиции шайбы
 function getNewPuck() {
     let indexes = [];
+    let busyCount = 0;
+    for (let i = 0; i < allPucks.length; i++) {
+        if (allPucks[i].length != 0) busyCount++;
+    }
     for (let i = 0; i < allPucks.length; i++) {
         if (allPucks[i].length == 0 || allPucks[i][allPucks[i].length-1].currentState % 5 >= 2) {
-            indexes.push(i);
+            if (state == 4 && allPucks[i].length != 0 && busyCount == 3 || busyCount < 3 || state == 5) {
+                indexes.push(i);
+            }
         }
     }
-    let ind = Math.floor(Math.random() * indexes.length);
-    // в игре 1 максимум с трёх сторон (предусмотреть)
-    let val;
-    switch(indexes[ind]) {
-        case 0:
-            val = Object.create(puckLD);
-            break;
-        case 1:
-            val = Object.create(puckLU);
-            break;
-        case 2:
-            val = Object.create(puckRU);
-            break;
-        case 3:
-            val = Object.create(puckRD);
-            break;
+    // в игре 1 максимум с трёх сторон
+    if (indexes.length > 0) {
+        let ind = Math.floor(Math.random() * indexes.length);
+        let val;
+        switch(indexes[ind]) {
+            case 0:
+                val = Object.create(puckLD);
+                break;
+            case 1:
+                val = Object.create(puckLU);
+                break;
+            case 2:
+                val = Object.create(puckRU);
+                break;
+            case 3:
+                val = Object.create(puckRD);
+                break;
+        }
+        val.init();
+        allPucks[indexes[ind]].push(val);
     }
-    val.init();
-    allPucks[indexes[ind]].push(val);
 }
 
 
-var moveParam = 0;
+function getClosestPuckState() {
+    let min = 4;
+    for (let puckAr of allPucks) {
+        for (let puck of puckAr) {
+            if (puck.currentState < min) min = puck.currentState;
+        }
+    }
+    return min;
+}
+
+
 var isResetScore = true;
+var isCatched = false;
+var isAddedPuck = false;
+var addPuck = 0;
+var puckSpeed = 0;
+var puck_count = 1;
 
 setInterval(function() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -569,48 +644,77 @@ setInterval(function() {
         } else {
             ui_components.draw_game2();
         }
-
-        // обработка движения шайб
-        if (moveParam % 35 == 0) { // 20 * 35 = 700 мс
-            for (let puck of allPucks[currentPuckInd % allPucks.length]) {
-                puck.move();
-            }
+        if (goalkeeper.penalty_scores > 0) {
+            ui_components.draw_penalty_scores();
+            ui_components.draw_count_image();
         }
-        // проверка достижения шайбы последней позиции и проверка поимки шайбы
-        if (allPucks[currentPuckInd % allPucks.length][0].isLastState()) {
-            let puck_id = currentPuckInd % allPucks.length;
-            if (puck_id != goalkeeper.state) {
-                goalkeeper.penalty_scores = ui_components.referee_enable_flag ? goalkeeper.penalty_scores + 1
+        if (goalkeeper.penalty_scores < 6) {
+
+            if (allPucks[currentPuckInd % allPucks.length].length > 0 && allPucks[currentPuckInd % allPucks.length][0].isLastState()) {
+                let puck_id = currentPuckInd % allPucks.length;
+                if (puck_id == goalkeeper.state && !isCatched) {
+                    goalkeeper.scores++;
+                    isCatched = true;
+                }
+            } 
+            // проверка достижения шайбы последней позиции и проверка поимки шайбы
+            // 
+            if (time_value % puckSpeed == 0) {
+                if (isCatched) {
+                    allPucks[currentPuckInd % allPucks.length].splice(0, 1);
+                    addPuck++;
+                    isCatched = false;
+                }
+                if (allPucks[currentPuckInd % allPucks.length].length > 0 &&
+                    allPucks[currentPuckInd % allPucks.length][0].isLastState()) {
+                    goalkeeper.penalty_scores = ui_components.referee_enable_flag ? goalkeeper.penalty_scores + 1
                  : goalkeeper.penalty_scores + 2;
-                console.log(goalkeeper.penalty_scores);
-            } else {
-                goalkeeper.scores += 1;
+                        
+                    allPucks[currentPuckInd % allPucks.length].splice(0, 1);
+                    addPuck++;
+                }
+                // мне была не совсем понятна суть появления новых шайб в оригинале, поэтому как есть
+                if (goalkeeper.scores == 5 || goalkeeper.scores == 30
+                     || goalkeeper.scores == 50 || goalkeeper.scores == 100) {
+                    if (!isAddedPuck) {
+                        addPuck++;
+                        isAddedPuck = true;
+                        puckSpeed--;
+                        puck_count++;
+                    }
+                } else {
+                    isAddedPuck = false;
+                }
+
+                let closestPuckState = getClosestPuckState();
+                if ((closestPuckState >= 2 && puck_count <= 3 || closestPuckState >= 1 
+                    && puck_count > 3) && addPuck > 0) {
+                    addPuck--;
+                    getNewPuck();
+                }
+                getCurrentPucksInd();
             }
-        } 
-        // 
-        if (moveParam % 35 == 0) {
-            if (allPucks[currentPuckInd % allPucks.length][0].isLastState()) {
-                allPucks[currentPuckInd % allPucks.length].splice(0, 1);
-                getNewPuck();
+            // обработка движения шайб
+            if (time_value % puckSpeed == 0) {
+                for (let puck of allPucks[currentPuckInd % allPucks.length]) {
+                    puck.move();
+                }
             }
-            getCurrentPucksInd();
-        }
+            
 
-        // обработка появления судьи
-        if (ui_components.referee_enable_counter % 600 == 0 && ui_components.referee_enable_counter != 0) {
-            ui_components.referee_enable_flag = ui_components.referee_enable_flag ? false : true;
-        }
+            // обработка появления судьи
+            if (time_value % 600 == 0 && time_value != 0) {
+                ui_components.referee_enable_flag = ui_components.referee_enable_flag ? false : true;
+            }
 
-        // обработка достижения 200 и 500 очков
-        if ((goalkeeper == 200 || goalkeeper == 500) && isResetScore) {
-            goalkeeper.penalty_scores = 0;
-            isResetScore = false;
-        } else if (goalkeeper != 200 && goalkeeper != 500 && !isResetScore) {
-            isResetScore = true;
+            // обработка достижения 200 и 500 очков
+            if ((goalkeeper == 200 || goalkeeper == 500) && isResetScore) {
+                goalkeeper.penalty_scores = 0;
+                isResetScore = false;
+            } else if (goalkeeper != 200 && goalkeeper != 500 && !isResetScore) {
+                isResetScore = true;
+            }
         }
-
-        moveParam++;
-        ui_components.referee_enable_counter++;
     } else {
         // неигровой режим
 
