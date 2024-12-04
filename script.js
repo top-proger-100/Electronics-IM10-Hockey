@@ -12,6 +12,13 @@ var time_value = 0;
 var isPlayAlarm = false;
 var alarmAudio = new Audio('./Звуки/будильник.mp4');
 
+var ldpAudio = new Audio('./Звуки/лнш.mp4');
+var lupAudio = new Audio('./Звуки/лвш.mp4');
+var rupAudio = new Audio('./Звуки/пвш.mp4');
+var rdpAudio = new Audio('./Звуки/пнш.mp4');
+var addScoreAudio = new Audio('./Звуки/плюс_один.mp4');
+var penaltyScoreAudio = new Audio('./Звуки/штрафное очко.mp4');
+
 // вратарь
 const goalkeeper = {
     coords: { x: 480, y: 240 },
@@ -60,6 +67,7 @@ const puckLD = {
     currentState: 0,
     image: null,
     states: {
+        //0: {image: './Изображения/лнш/лнш1.png', x: 360, y: 380},
         0: {image: './Изображения/лнш/лнш1.png', x: 360, y: 380},
         1: {image: './Изображения/лнш/лнш2.png', x: 365, y: 370},
         2: {image: './Изображения/лнш/лнш3.png', x: 373, y: 360},
@@ -67,20 +75,25 @@ const puckLD = {
         4: {image: './Изображения/лнш/лнш5.png', x: 386, y: 325},
     },
     draw() {
-        ctx.drawImage(this.image, this.states[this.currentState % 5].x,
-             this.states[this.currentState % 5].y, this.width, this.height);
+        if (this.currentState >= 0) {
+            ctx.drawImage(this.image, this.states[this.currentState].x,
+                this.states[this.currentState].y, this.width, this.height);
+        } else {
+            ctx.drawImage(this.image, this.states[0].x,
+                this.states[0].y, this.width, this.height);
+        }
     },
     init() {
         this.image = new Image();
-        this.currentState = 0;
-        this.image.src = this.states[this.currentState].image;
+        this.currentState = -1;
+        this.image.src = this.states[0].image;
     },
     move() {
         this.currentState++;
-        this.image.src = this.states[this.currentState % 5].image;
+        this.image.src = this.states[this.currentState].image;
     },
     isLastState() {
-        return this.currentState == 4  && this.currentState != 0;
+        return this.currentState == 4;
     },
 };
 
@@ -114,7 +127,6 @@ puckRU.states = {
     4: { image: './Изображения/пвш/пвш5.png', x: 565, y: 260 }
 };
 
-// переделать на массив, который состоит из ещё 4х (знач макс 3 массива при игре 1) массивов, затем рандомным образом заполнить при ситуации, когда поймал или не поймал вратарь
 var allPucks = [[Object.create(puckLD)], [], [], []];
 
 // кнопка сброса
@@ -579,7 +591,6 @@ function getNewPuck() {
             }
         }
     }
-    // в игре 1 максимум с трёх сторон
     if (indexes.length > 0) {
         let ind = Math.floor(Math.random() * indexes.length);
         let val;
@@ -655,23 +666,27 @@ setInterval(function() {
                 if (puck_id == goalkeeper.state && !isCatched) {
                     goalkeeper.scores++;
                     isCatched = true;
+                    addScoreAudio.play();
                 }
             } 
             // проверка достижения шайбы последней позиции и проверка поимки шайбы
-            // 
             if (time_value % puckSpeed == 0) {
                 if (isCatched) {
                     allPucks[currentPuckInd % allPucks.length].splice(0, 1);
                     addPuck++;
                     isCatched = false;
                 }
-                if (allPucks[currentPuckInd % allPucks.length].length > 0 &&
-                    allPucks[currentPuckInd % allPucks.length][0].isLastState()) {
+                if (allPucks[currentPuckInd % allPucks.length].length > 0 
+                    && allPucks[currentPuckInd % allPucks.length][0].isLastState()) {
                     goalkeeper.penalty_scores = ui_components.referee_enable_flag ? goalkeeper.penalty_scores + 1
-                 : goalkeeper.penalty_scores + 2;
-                        
-                    allPucks[currentPuckInd % allPucks.length].splice(0, 1);
-                    addPuck++;
+                    : goalkeeper.penalty_scores + 2;
+                    penaltyScoreAudio.play();
+                    for (let i = 0; i < allPucks.length; i++) {
+                        if (allPucks[i].length != 0) {
+                            addPuck += allPucks[i].length;
+                            allPucks[i].splice(0, allPucks[i].length);
+                        }
+                    }
                 }
                 // мне была не совсем понятна суть появления новых шайб в оригинале, поэтому как есть
                 if (goalkeeper.scores == 5 || goalkeeper.scores == 30
@@ -687,16 +702,29 @@ setInterval(function() {
                 }
 
                 let closestPuckState = getClosestPuckState();
-                if ((closestPuckState >= 2 && puck_count <= 3 || closestPuckState >= 1 
+                if ((closestPuckState >= 1 && puck_count <= 3 || closestPuckState >= 0 
                     && puck_count > 3) && addPuck > 0) {
                     addPuck--;
                     getNewPuck();
                 }
                 getCurrentPucksInd();
-            }
-            // обработка движения шайб
-            if (time_value % puckSpeed == 0) {
-                for (let puck of allPucks[currentPuckInd % allPucks.length]) {
+                // обработка движения шайб
+                let ind = currentPuckInd % allPucks.length;
+                switch(ind) {
+                    case 0:
+                        ldpAudio.play();
+                        break;
+                    case 1:
+                        lupAudio.play();
+                        break;
+                    case 2:
+                        rdpAudio.play();
+                        break;
+                    case 3:
+                        rupAudio.play();
+                        break;
+                }
+                for (let puck of allPucks[ind]) {
                     puck.move();
                 }
             }
