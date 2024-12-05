@@ -661,6 +661,11 @@ setInterval(function() {
         // в режиме игры
 
         // отрисовка шайб, вратаря и интерфейса
+        for (let pucks of allPucks) {
+            for (let puck of pucks) {
+                puck.draw();
+            }
+        }
         if (ui_components.referee_enable_flag) {
             ui_components.draw_referee();
         }
