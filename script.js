@@ -28,8 +28,6 @@ const goalkeeper = {
     // штрафные очки
     penalty_scores: 0, // до 6
     image: new Image(),
-    //rightCoords: { x: 480, y: 245 },
-    //leftCoords: { x: 390, y: 245 },
     state: 0,
     draw() {
         ctx.drawImage(this.image, this.coords.x, this.coords.y, this.width, this.height);
@@ -575,13 +573,6 @@ window.addEventListener('mouseup', function(event) {
             }
         }
     }
-
-    // звук будильника ("костыль")
-    setInterval(function() {
-        if (isPlayAlarm) {
-            alarmAudio.play();
-        }
-    }, 1000);
 });
 
 
@@ -812,6 +803,14 @@ setInterval(function() {
     for (let button of buttons) {
         if (button.isShow) {
             button.draw();
+        }
+    }
+
+
+    // звук будильника
+    if (time_value % 50 == 0) {
+        if (isPlayAlarm) {
+            alarmAudio.play();
         }
     }
 
