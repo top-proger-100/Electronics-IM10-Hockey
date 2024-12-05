@@ -661,11 +661,6 @@ setInterval(function() {
         // в режиме игры
 
         // отрисовка шайб, вратаря и интерфейса
-        for (let pucks of allPucks) {
-            for (let puck of pucks) {
-                puck.draw();
-            }
-        }
         if (ui_components.referee_enable_flag) {
             ui_components.draw_referee();
         }
@@ -757,10 +752,10 @@ setInterval(function() {
             }
 
             // обработка достижения 200 и 500 очков
-            if ((goalkeeper == 200 || goalkeeper == 500) && isResetScore) {
+            if ((goalkeeper.scores == 200 || goalkeeper.scores == 500) && isResetScore) {
                 goalkeeper.penalty_scores = 0;
                 isResetScore = false;
-            } else if (goalkeeper != 200 && goalkeeper != 500 && !isResetScore) {
+            } else if (goalkeeper.scores != 200 && goalkeeper.scores != 500 && !isResetScore) {
                 isResetScore = true;
             }
         }
