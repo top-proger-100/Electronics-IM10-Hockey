@@ -11,6 +11,8 @@ var state = 0; // 0 - сброс, 1 - установка будильника, 2
 var time_value = 0;
 var isPlayAlarm = false;
 
+var delay = 100;
+
 var alarmAudio = new Audio('./Звуки/будильник.mp4');
 var ldpAudio = new Audio('./Звуки/лнш.mp4');
 var lupAudio = new Audio('./Звуки/лвш.mp4');
@@ -260,7 +262,7 @@ game1Button.resetPucks = function() {
         }
     }
 }
-game1Button.puckSpeed = 35;
+game1Button.puckSpeed = 700 / delay;
 game1Button.action = function() {
     this.resetPucks();
     currentPuckInd = 0;
@@ -285,7 +287,7 @@ game1Button.resetFlag = function() {
 
 // кнопка игра 2
 const game2Button = Object.assign({}, game1Button);
-game2Button.puckSpeed = 30;
+game2Button.puckSpeed = 600 / delay;
 game2Button.coords = { xLeft: 811, xRight: 854, yTop: 120, yBottom: 155 };
 game2Button.setState = function() {
     state = 5;
@@ -461,7 +463,7 @@ const ui_components = {
                 ctx.drawImage(this.penalty_scores_images[i], this.penalty_scores_coords[i][0],
                     this.penalty_scores_coords[i][1], this.penalty_scores_width, this.penalty_scores_height);
             }
-            if (time_value % 25 == 0) { // 500 мс
+            if (time_value % (500 / delay) == 0) { // 500 мс
                 this.penalty_half_score_enabled = this.penalty_half_score_enabled ? false : true;
             }
             if (this.penalty_half_score_enabled) {
@@ -715,7 +717,6 @@ setInterval(function() {
                     if (!isAddedPuck) {
                         addPuck++;
                         isAddedPuck = true;
-                        puckSpeed--;
                         puck_count++;
                     }
                 } else {
@@ -752,7 +753,7 @@ setInterval(function() {
             
 
             // обработка появления судьи
-            if (time_value % 600 == 0 && time_value != 0) {
+            if (time_value % (12000 / delay) == 0 && time_value != 0) {
                 ui_components.referee_enable_flag = ui_components.referee_enable_flag ? false : true;
             }
 
@@ -808,7 +809,7 @@ setInterval(function() {
 
 
     // звук будильника
-    if (time_value % 50 == 0) {
+    if (time_value % (1000 / delay) == 0) {
         if (isPlayAlarm) {
             alarmAudio.play();
         }
@@ -816,7 +817,7 @@ setInterval(function() {
 
     // счётчик времени 
     if (state != 0) {
-        if (time_value != 0 && time_value % 3000 == 0) { // 1000 мс * 60 с / 20 мс = 3000 мс
+        if (time_value != 0 && time_value % (1000 * 60 / delay) == 0) {
             if (resetButton.minutes == 59) {
                 resetButton.addHour();
             }
@@ -833,4 +834,4 @@ setInterval(function() {
         }
         time_value++;
     }      
-}, 20);
+}, delay);
