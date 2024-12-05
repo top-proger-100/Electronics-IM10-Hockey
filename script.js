@@ -833,5 +833,6 @@ setInterval(function() {
             }
         }
         time_value++;
+        if (time_value == 1000001) time_value = 1;
     }      
 }, delay);
