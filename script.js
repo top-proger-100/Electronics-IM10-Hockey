@@ -10,8 +10,8 @@ var state = 0; // 0 - сброс, 1 - установка будильника, 2
 
 var time_value = 0;
 var isPlayAlarm = false;
-var alarmAudio = new Audio('./Звуки/будильник.mp4');
 
+var alarmAudio = new Audio('./Звуки/будильник.mp4');
 var ldpAudio = new Audio('./Звуки/лнш.mp4');
 var lupAudio = new Audio('./Звуки/лвш.mp4');
 var rupAudio = new Audio('./Звуки/пвш.mp4');
@@ -21,15 +21,15 @@ var penaltyScoreAudio = new Audio('./Звуки/штрафное очко.mp4');
 
 // вратарь
 const goalkeeper = {
-    coords: { x: 480, y: 240 },
-    width: 91,
-    height: 114,
+    coords: null,
+    width: null,
+    height: null,
     scores: 0,
     // штрафные очки
     penalty_scores: 0, // до 6
     image: new Image(),
-    rightCoords: { x: 480, y: 245 },
-    leftCoords: { x: 390, y: 245 },
+    //rightCoords: { x: 480, y: 245 },
+    //leftCoords: { x: 390, y: 245 },
     state: 0,
     draw() {
         ctx.drawImage(this.image, this.coords.x, this.coords.y, this.width, this.height);
@@ -37,26 +37,34 @@ const goalkeeper = {
     // левое верхнее положение
     setLeftUpState() {
         this.state = 1;
-        this.coords = this.leftCoords;
+        this.coords = { x: 393, y: 245 };;
         this.image.src = './Изображения/вратарь/лвв.png';
+        this.width = 84;
+        this.height = 117;
     },
     // левое нижнее положение
     setLeftDownState() {
         this.state = 0;
-        this.coords = this.leftCoords;
+        this.coords = { x: 390, y: 245 };
         this.image.src = './Изображения/вратарь/лнв.png';
+        this.width = 87;
+        this.height = 117;
     },
     // правое верхнее положение
     setRightUpState() {
         this.state = 2;
-        this.coords = this.rightCoords;
+        this.coords = { x: 480, y: 245 };
         this.image.src = './Изображения/вратарь/пвв.png';
+        this.width = 85;
+        this.height = 113;
     },
     // правое нижнее положение
     setRightDownState() {
         this.state = 3;
-        this.coords = this.rightCoords;
+        this.coords = { x: 480, y: 245 };
         this.image.src = './Изображения/вратарь/пнв.png';
+        this.width = 86;
+        this.height = 113;
     }
 };
 
@@ -67,7 +75,6 @@ const puckLD = {
     currentState: 0,
     image: null,
     states: {
-        //0: {image: './Изображения/лнш/лнш1.png', x: 360, y: 380},
         0: {image: './Изображения/лнш/лнш1.png', x: 360, y: 380},
         1: {image: './Изображения/лнш/лнш2.png', x: 365, y: 370},
         2: {image: './Изображения/лнш/лнш3.png', x: 373, y: 360},
@@ -440,6 +447,7 @@ const ui_components = {
         ctx.drawImage(this.game2_image, this.game2_coords.x, this.game2_coords.y,
             this.game2_width, this.game2_height);
     },
+    // штарфные очки (шайбы в звезде)
     penalty_scores_images: [new Image(), new Image(), new Image()],
     penalty_scores_src: './Изображения/интерфейс/шайба в звезде.png',
     penalty_scores_coords: [[525, 205], [495, 205], [465, 205]],
@@ -470,6 +478,7 @@ const ui_components = {
             }
         }
     },
+    // надпись "счёт"
     count_image: new Image(),
     count_image_src: './Изображения/интерфейс/счёт.png',
     count_image_coords: { x: 520, y: 180 },
@@ -510,7 +519,17 @@ window.addEventListener('keydown', function(event) {
         rightUpButton.action();
     } else if (event.code == 'KeyL') {
         rightDownButton.action();
-    } 
+    } else if (event.key == '1') {
+        game1Button.action();
+    } else if (event.key == '2') {
+        game2Button.action();
+    } else if (event.key == '3') {
+        timeButton.action();
+    } else if (event.key == '4') {
+        alarmButton.action();
+    } else if (event.key == '5') {
+        resetButton.action();
+    }
 });
 window.addEventListener('keyup', function(event) {
     if (event.code == 'KeyQ') {
@@ -521,7 +540,17 @@ window.addEventListener('keyup', function(event) {
         rightUpButton.resetFlag();
     } else if (event.code == 'KeyL') {
         rightDownButton.resetFlag();
-    } 
+    } else if (event.key == '1') {
+        game1Button.resetFlag();
+    } else if (event.key == '2') {
+        game2Button.resetFlag();
+    } else if (event.key == '3') {
+        timeButton.resetFlag();
+    } else if (event.key == '4') {
+        alarmButton.resetFlag();
+    } else if (event.key == '5') {
+        resetButton.resetFlag();
+    }
 });
 
 // обработка нажатия мыши
@@ -586,7 +615,8 @@ function getNewPuck() {
     }
     for (let i = 0; i < allPucks.length; i++) {
         if (allPucks[i].length == 0 || allPucks[i][allPucks[i].length-1].currentState % 5 >= 2) {
-            if (state == 4 && allPucks[i].length != 0 && busyCount == 3 || busyCount < 3 || state == 5) {
+            // в игре 1 одновременно шайбы могут идти с 3 направлений
+            if (state == 4 && allPucks[i].length != 0 && busyCount == 3 || busyCount < 3 || state == 5) { 
                 indexes.push(i);
             }
         }
@@ -708,7 +738,7 @@ setInterval(function() {
                     getNewPuck();
                 }
                 getCurrentPucksInd();
-                // обработка движения шайб
+                // звуки и движение шайб
                 let ind = currentPuckInd % allPucks.length;
                 switch(ind) {
                     case 0:
@@ -787,7 +817,7 @@ setInterval(function() {
 
     // счётчик времени 
     if (state != 0) {
-        if (time_value != 0 && time_value % 3000 == 0) { // 1000 мс * 60 с / 20 мс
+        if (time_value != 0 && time_value % 3000 == 0) { // 1000 мс * 60 с / 20 мс = 3000 мс
             if (resetButton.minutes == 59) {
                 resetButton.addHour();
             }

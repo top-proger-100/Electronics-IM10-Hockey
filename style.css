@@ -6,3 +6,19 @@ canvas {
     left: 50%;
     transform: translate(-50%, -50%);
 }
+
+a {
+    text-decoration: underline;
+    cursor: pointer;
+    display: block;
+    text-align: center;
+    color: #7A7A7A;
+    font-size: 20px;
+    user-select: none;
+}
+
+.labels {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+}
