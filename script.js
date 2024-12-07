@@ -2,25 +2,32 @@ window.onload = function() {
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
 
-    var background = new Image();
-    background_source_start = './Изображения/фон2.png';
-    background_source_game = './Изображения/фон.png';
-    background.src = background_source_start;
+    var background1 = new Image();
+    background1.src = './Изображения/фон.png';
+    var background2 = new Image();
+    background2.src = './Изображения/фон2.png';
 
     var state = 0; // 0 - сброс, 1 - установка будильника, 2 - время, 3 - время будильника, 4 - игра 1, 5 - игра 2
 
     var time_value = 0;
     var isPlayAlarm = false;
 
-    var delay = 100;
+    var delay = 20;
 
     var alarmAudio = new Audio('./Звуки/будильник.mp4');
+    alarmAudio.load();
     var ldpAudio = new Audio('./Звуки/лнш.mp4');
+    ldpAudio.load();
     var lupAudio = new Audio('./Звуки/лвш.mp4');
+    lupAudio.load();
     var rupAudio = new Audio('./Звуки/пвш.mp4');
+    rupAudio.load();
     var rdpAudio = new Audio('./Звуки/пнш.mp4');
+    rdpAudio.load();
     var addScoreAudio = new Audio('./Звуки/плюс_один.mp4');
+    addScoreAudio.load();
     var penaltyScoreAudio = new Audio('./Звуки/штрафное очко.mp4');
+    penaltyScoreAudio.load();
 
     // вратарь
     const goalkeeper = {
@@ -39,7 +46,7 @@ window.onload = function() {
                 this.sizes[this.state].width, this.sizes[this.state].height);
         },
         init() {
-            this.images = [new Image(), new Image(), new Image(), new Image(), new Image()];
+            this.images = [new Image(), new Image(), new Image(), new Image()];
             let sources = [
                 './Изображения/вратарь/лнв.png', './Изображения/вратарь/лвв.png',
                 './Изображения/вратарь/пвв.png', './Изображения/вратарь/пнв.png'
@@ -133,7 +140,7 @@ window.onload = function() {
         4: { image: './Изображения/пвш/пвш5.png', x: 565, y: 260 }
     };
 
-    var allPucks = [[Object.create(puckLD)], [], [], []];
+    var allPucks = [];
 
     // кнопка сброса
     const resetButton = {
@@ -152,7 +159,6 @@ window.onload = function() {
         action() {
             this.isShow = true;
             state = 0;
-            background.src = background_source_start;
             this.isPm = false;
             this.minutes = 0;
             this.hours = 12;
@@ -214,7 +220,6 @@ window.onload = function() {
     alarmButton.isPm = true;
     alarmButton.action = function() {
         alarmButton.isShow = true;
-        background.src = background_source_game;
         state = 1;
         isPlayAlarm = false;
     }
@@ -233,7 +238,6 @@ window.onload = function() {
         action() {
             this.isShow = true;
             state = 3;
-            background.src = background_source_game;
             isPlayAlarm = false;
         },
         resetFlag() {
@@ -255,22 +259,18 @@ window.onload = function() {
     game1Button.resetPucks = function() {
         addPuck = 0;
         allPucks = [[Object.create(puckLD)], [], [], []];
-        for (let pucks of allPucks) {
-            for (let puck of pucks) {
-                puck.init();
-            }
-        }
+        allPucks[0][0].init();
     }
     game1Button.puckSpeed = 700 / delay;
     game1Button.action = function() {
         this.resetPucks();
         currentPuckInd = 0;
         this.isShow = true;
-        background.src = background_source_game;
         goalkeeper.scores = 0;
         goalkeeper.penalty_scores = 0;
         isPlayAlarm = false;
         // начальное положение шайб и хоккеиста
+        goalkeeper.init();
         goalkeeper.setLeftDownState();
         this.setState();
         puckSpeed = this.puckSpeed;
@@ -579,11 +579,6 @@ window.onload = function() {
 
     goalkeeper.init();
     goalkeeper.setLeftDownState();
-    for (let pucks of allPucks) {
-        for (let puck of pucks) {
-            puck.init();
-        }
-    }
     for (let button of buttons) {
         button.init();
     }
@@ -656,9 +651,9 @@ window.onload = function() {
 
     setInterval(function() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
 
         if (state == 4 || state == 5) {
+            ctx.drawImage(background1, 0, 0, canvas.width, canvas.height);
             // в режиме игры
 
             // отрисовка шайб, вратаря и интерфейса
@@ -765,6 +760,7 @@ window.onload = function() {
                 }
             }
         } else {
+            ctx.drawImage(background2, 0, 0, canvas.width, canvas.height);
             // неигровой режим
 
             // получение времени будильника или часов 
