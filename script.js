@@ -29,16 +29,27 @@ const goalkeeper = {
     scores: 0,
     // штрафные очки
     penalty_scores: 0, // до 6
-    image: new Image(),
+    images: null,
+    iamge: null,
     state: 0,
     draw() {
         ctx.drawImage(this.image, this.coords.x, this.coords.y, this.width, this.height);
     },
+    init() {
+        this.images = [new Image(), new Image(), new Image(), new Image(), new Image()];
+        let sources = [
+            './Изображения/вратарь/лнв.png', './Изображения/вратарь/лвв.png',
+            './Изображения/вратарь/пвв.png', './Изображения/вратарь/пнв.png'
+        ]
+        for (let i = 0; i < sources.length; i++) {
+            this.images[i].src = sources[i];
+        }
+    },
     // левое верхнее положение
     setLeftUpState() {
         this.state = 1;
-        this.coords = { x: 393, y: 245 };;
-        this.image.src = './Изображения/вратарь/лвв.png';
+        this.coords = { x: 393, y: 245 };
+        this.image = this.images[1];
         this.width = 84;
         this.height = 117;
     },
@@ -46,7 +57,7 @@ const goalkeeper = {
     setLeftDownState() {
         this.state = 0;
         this.coords = { x: 390, y: 245 };
-        this.image.src = './Изображения/вратарь/лнв.png';
+        this.image = this.images[0];
         this.width = 87;
         this.height = 117;
     },
@@ -54,17 +65,17 @@ const goalkeeper = {
     setRightUpState() {
         this.state = 2;
         this.coords = { x: 480, y: 245 };
-        this.image.src = './Изображения/вратарь/пвв.png';
         this.width = 85;
         this.height = 113;
+        this.image = this.images[2];
     },
     // правое нижнее положение
     setRightDownState() {
         this.state = 3;
         this.coords = { x: 480, y: 245 };
-        this.image.src = './Изображения/вратарь/пнв.png';
         this.width = 86;
         this.height = 113;
+        this.image = this.images[3];
     }
 };
 
@@ -73,7 +84,7 @@ const puckLD = {
     width: 16,
     height: 14,
     currentState: 0,
-    image: null,
+    images: null,
     states: {
         0: {image: './Изображения/лнш/лнш1.png', x: 360, y: 380},
         1: {image: './Изображения/лнш/лнш2.png', x: 365, y: 370},
@@ -83,21 +94,22 @@ const puckLD = {
     },
     draw() {
         if (this.currentState >= 0) {
-            ctx.drawImage(this.image, this.states[this.currentState].x,
+            ctx.drawImage(this.images[this.currentState], this.states[this.currentState].x,
                 this.states[this.currentState].y, this.width, this.height);
         } else {
-            ctx.drawImage(this.image, this.states[0].x,
+            ctx.drawImage(this.images[0], this.states[0].x,
                 this.states[0].y, this.width, this.height);
         }
     },
     init() {
-        this.image = new Image();
+        this.images = [new Image(), new Image(), new Image(), new Image(), new Image()];
+        for (let i = 0; i < this.images.length; i++) {
+            this.images[i].src = this.states[i].image;
+        }
         this.currentState = -1;
-        this.image.src = this.states[0].image;
     },
     move() {
         this.currentState++;
-        this.image.src = this.states[this.currentState].image;
     },
     isLastState() {
         return this.currentState == 4;
@@ -578,7 +590,7 @@ window.addEventListener('mouseup', function(event) {
 });
 
 
-
+goalkeeper.init();
 goalkeeper.setLeftDownState();
 for (let pucks of allPucks) {
     for (let puck of pucks) {
@@ -589,6 +601,7 @@ for (let button of buttons) {
     button.init();
 }
 ui_components.init();
+
 var currentPuckInd = 0;
 
 // функция, которая нужна для движения шайб в одном направлении (слева/справа сверху/снизу) 
