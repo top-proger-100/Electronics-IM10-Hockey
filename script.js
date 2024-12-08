@@ -657,10 +657,10 @@ window.onload = function() {
     setInterval(function() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        if (state == 4 || state == 4 || state == 2) {
-            ctx.drawImage(background1, 0, 0, canvas.width, canvas.height);
-        } else {
+        if (state == 0) {
             ctx.drawImage(background2, 0, 0, canvas.width, canvas.height);
+        } else {
+            ctx.drawImage(background1, 0, 0, canvas.width, canvas.height);
         }
 
         if (state == 4 || state == 5) {
