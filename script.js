@@ -379,7 +379,10 @@ window.onload = function() {
         // цифры
         digit_width: 22,
         digit_height: 36,
-        digits_image: [new Image(), new Image(), new Image(), new Image()],
+        digits_image: [
+            new Image(), new Image(), new Image(), new Image(), new Image(),
+            new Image(), new Image(), new Image(), new Image(), new Image()
+        ],
         digits_src: [
             './Изображения/цифры/0.png', './Изображения/цифры/1.png', 
             './Изображения/цифры/2.png', './Изображения/цифры/3.png',
@@ -390,8 +393,7 @@ window.onload = function() {
         digits_coords: [[585, 140], [555, 140], [515, 140], [485, 140]],
         draw_digits(digits) {
             for (let i = 0; i < digits.length; i++) {
-                this.digits_image[i].src = this.digits_src[Number(digits[i])];
-                ctx.drawImage(this.digits_image[i], this.digits_coords[digits.length-1-i][0],
+                ctx.drawImage(this.digits_image[Number(digits[i])], this.digits_coords[digits.length-1-i][0],
                     this.digits_coords[digits.length-1-i][1], this.digit_width, this.digit_height);
             }
         },
@@ -499,6 +501,9 @@ window.onload = function() {
                 this.penalty_scores_images[i].src = this.penalty_scores_src;
             }
             this.count_image.src = this.count_image_src;
+            for (let i = 0; i < this.digits_image.length; i++) {
+                this.digits_image[i].src = this.digits_src[i];
+            }
         }
     };
 
@@ -652,8 +657,13 @@ window.onload = function() {
     setInterval(function() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        if (state == 4 || state == 5) {
+        if (state == 4 || state == 4 || state == 2) {
             ctx.drawImage(background1, 0, 0, canvas.width, canvas.height);
+        } else {
+            ctx.drawImage(background2, 0, 0, canvas.width, canvas.height);
+        }
+
+        if (state == 4 || state == 5) {
             // в режиме игры
 
             // отрисовка шайб, вратаря и интерфейса
@@ -760,7 +770,6 @@ window.onload = function() {
                 }
             }
         } else {
-            ctx.drawImage(background2, 0, 0, canvas.width, canvas.height);
             // неигровой режим
 
             // получение времени будильника или часов 
