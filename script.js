@@ -12,7 +12,7 @@ window.onload = function() {
     var time_value = 0;
     var isPlayAlarm = false;
 
-    var delay = 20;
+    var delay = 100;
 
     var alarmAudio = new Audio('./Звуки/будильник.mp4');
     alarmAudio.load();
